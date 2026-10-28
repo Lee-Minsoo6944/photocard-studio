@@ -3,7 +3,7 @@
 직접 찍은 야구장 사진과 응원 문구로 나만의 야구 포토카드를 만들어 이미지 파일로 내려받는 웹 편집기입니다.
 로그인이나 설치 없이 브라우저에서 바로 쓸 수 있습니다.
 
-## 🔗 웹사이트 주소 : https://github.com/Lee-Minsoo6944/photocard-studio
+## 🔗 웹사이트 주소 : https://lee-minsoo6944.github.io/photocard-studio/
 
 ## 사용법
 
