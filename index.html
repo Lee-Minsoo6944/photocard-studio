@@ -1,0 +1,1133 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>야구 포토카드 스튜디오</title>
+<meta name="description" content="직접 찍은 야구장 사진과 응원 문구로 나만의 야구 포토카드를 만들고 내려받는 팬 제작 편집기">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link id="gfont" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap">
+<style>
+:root{
+  --bg:#f4f5f7; --panel:#ffffff; --text:#1d2129; --muted:#5f6673; --line:#dde1e7;
+  --accent:#2f6fed; --accent-text:#ffffff; --ok:#137a3a; --ok-bg:#e5f6ec; --err:#b42318; --err-bg:#fdecea;
+  --stage:#e9ebef;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#15171b; --panel:#1f2228; --text:#e8eaed; --muted:#a2a8b3; --line:#343944;
+    --accent:#6e9bff; --accent-text:#0d1220; --ok:#6fdc97; --ok-bg:#163222; --err:#ff8a80; --err-bg:#3a1a18; --stage:#101215; }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 "Noto Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif}
+header{padding:16px 16px 4px;max-width:1400px;margin:0 auto}
+h1{font-size:22px;margin:0 0 2px}
+header p{margin:0;color:var(--muted);font-size:14px}
+h2{font-size:16px;margin:0 0 10px}
+h3{font-size:13px;margin:14px 0 6px;color:var(--muted);font-weight:700}
+.layout{display:grid;grid-template-columns:290px minmax(0,1fr) 320px;gap:12px;max-width:1400px;margin:0 auto;padding:12px 16px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+.wide{max-width:1368px;margin:0 auto 12px}
+.wrapwide{padding:0 16px}
+.stage{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+.drop{width:100%;display:flex;justify-content:center;align-items:center;background:var(--stage);border:2px dashed transparent;border-radius:10px;padding:12px;min-height:300px}
+.drop.over{border-color:var(--accent)}
+#preview{display:block;max-width:100%;max-height:72vh;width:auto;height:auto;box-shadow:0 2px 12px rgba(0,0,0,.25);cursor:move;touch-action:none;background:#fff}
+.hint{color:var(--muted);font-size:12.5px;margin:4px 0}
+.info{font-size:13px;background:var(--bg);border-radius:6px;padding:6px 8px;margin:8px 0;word-break:break-all}
+label.f{display:block;font-size:13px;margin:8px 0 2px;color:var(--muted)}
+.pair{display:flex;gap:8px;align-items:center}
+.pair input[type=range]{flex:1;min-width:0}
+.pair input[type=number]{width:72px}
+input[type=number],input[type=text],select,textarea{font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:5px 7px}
+textarea{width:100%;min-height:96px;resize:vertical}
+input[type=color]{width:44px;height:30px;border:1px solid var(--line);border-radius:6px;background:var(--panel);padding:2px}
+button,.btn{font:inherit;font-size:13.5px;border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:6px;padding:6px 10px;cursor:pointer;display:inline-block}
+button:hover,.btn:hover{border-color:var(--accent)}
+button.primary,.btn.primary{background:var(--accent);color:var(--accent-text);border-color:var(--accent);font-weight:700}
+button.danger{color:var(--err)}
+button:disabled{opacity:.5;cursor:default}
+.btn.file{position:relative;overflow:hidden;width:100%;text-align:center}
+.btn.file input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.seg{display:flex;flex-wrap:wrap;gap:4px}
+.seg button[aria-pressed=true]{background:var(--accent);color:var(--accent-text);border-color:var(--accent)}
+.swatch{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;padding:4px 8px}
+.swatch[aria-pressed=true]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.swatch i{display:inline-block;width:22px;height:14px;border-radius:3px}
+.row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0}
+.colors{display:flex;gap:14px;flex-wrap:wrap}
+.colors label{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:2px}
+.msg{max-width:1368px;margin:8px auto 0;padding:0 16px;min-height:0}
+.msg .box{padding:8px 12px;border-radius:8px;font-size:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.msg .ok{background:var(--ok-bg);color:var(--ok)}
+.msg .error{background:var(--err-bg);color:var(--err)}
+.msg .info{background:var(--panel);border:1px solid var(--line);margin:0}
+.tpl-list{list-style:none;padding:0;margin:10px 0 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:8px}
+.tpl-list li{border:1px solid var(--line);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:6px}
+.tpl-list li.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.tpl-meta{font-size:12px;color:var(--muted)}
+.tpl-text{font-size:13px;white-space:pre-wrap;word-break:break-all;max-height:3.2em;overflow:hidden}
+.tpl-list input[type=text]{width:100%}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{border:1px solid var(--line);padding:5px 7px;text-align:left;vertical-align:top}
+th{background:var(--bg)}
+td.pass{color:var(--ok);font-weight:700}
+td.fail{color:var(--err);font-weight:700}
+.tablewrap{overflow-x:auto;margin-top:8px}
+#mdOut{width:100%;min-height:80px;font:12px/1.4 ui-monospace,Consolas,monospace;margin-top:8px}
+footer{max-width:1368px;margin:0 auto;padding:8px 16px 24px;color:var(--muted);font-size:12.5px}
+@media (max-width:1050px){ .layout{grid-template-columns:1fr} .stage{order:-1} #preview{max-height:45vh} .drop{min-height:0} }
+</style>
+</head>
+<body>
+<header>
+  <h1>⚾ 야구 포토카드 스튜디오</h1>
+  <p>직접 찍은 야구장 사진과 응원 문구로 나만의 포토카드를 만들어 1:1 · 4:5 · 9:16 이미지로 내려받습니다. 모든 처리는 이 브라우저 안에서만 이루어지며, 이미지와 문구는 어디에도 전송되지 않습니다.</p>
+</header>
+
+<div id="msg" class="msg" role="status" aria-live="polite"></div>
+
+<main class="layout">
+  <!-- ① 이미지 -->
+  <section class="panel" aria-labelledby="h-img">
+    <h2 id="h-img">① 이미지 편집</h2>
+    <label class="btn file primary">이미지 불러오기 (PNG·JPEG)
+      <input id="fileInput" type="file" accept="image/png,image/jpeg,.png,.jpg,.jpeg">
+    </label>
+    <p class="hint">미리보기 위로 파일을 끌어다 놓아도 됩니다. 최대 20MB · 한 변 8000px.</p>
+    <div id="imgInfo" class="info">이미지 없음 (배경색만 사용)</div>
+    <h3>직접 만든 샘플 이미지</h3>
+    <div class="row">
+      <button data-sample="landscape">야구장 (가로)</button>
+      <button data-sample="portrait">야간 조명 (세로)</button>
+      <button data-sample="square">야구공 (정사각)</button>
+      <button data-sample="transparent">공·배트 (투명 PNG)</button>
+    </div>
+    <button id="clearImg">이미지 빼기</button>
+
+    <h3>화면비</h3>
+    <div class="seg" id="ratioSeg">
+      <button data-ratio="1:1">1:1 (1080×1080)</button>
+      <button data-ratio="4:5">4:5 (1080×1350)</button>
+      <button data-ratio="9:16">9:16 (1080×1920)</button>
+    </div>
+
+    <h3>자르기 (꽉 채우기 기준)</h3>
+    <label class="f" for="zoom">확대 %</label>
+    <div class="pair"><input id="zoom" type="range" min="100" max="300" step="1"><input id="zoomN" type="number" min="100" max="300" aria-label="확대 숫자"></div>
+    <label class="f" for="panX">가로 위치 %</label>
+    <div class="pair"><input id="panX" type="range" min="0" max="100" step="1"><input id="panXN" type="number" min="0" max="100" aria-label="가로 위치 숫자"></div>
+    <label class="f" for="panY">세로 위치 %</label>
+    <div class="pair"><input id="panY" type="range" min="0" max="100" step="1"><input id="panYN" type="number" min="0" max="100" aria-label="세로 위치 숫자"></div>
+    <div class="colors" style="margin-top:10px"><label>배경색 (투명 영역)<input id="bg" type="color"></label></div>
+
+    <h3>팀 컬러 프리셋</h3>
+    <div class="row" id="presetRow"></div>
+    <label class="row" style="font-size:13px"><input id="frame" type="checkbox"> 카드 테두리</label>
+    <div class="colors">
+      <label>테두리 색<input id="frameColor" type="color"></label>
+      <label>포인트 색 (이름 띠·등번호)<input id="accent" type="color"></label>
+    </div>
+  </section>
+
+  <!-- 미리보기 -->
+  <section class="stage" aria-label="미리보기">
+    <div id="drop" class="drop"><canvas id="preview" width="1080" height="1080" aria-label="편집 미리보기"></canvas></div>
+    <p class="hint">미리보기는 내려받는 파일과 똑같은 1080px 캔버스를 화면에 맞게 줄여 보여줍니다. 문구를 끌어서 옮길 수 있습니다.</p>
+    <div id="sizeInfo" class="hint"></div>
+  </section>
+
+  <!-- ② 문구 / ③ 내려받기 -->
+  <section class="panel" aria-labelledby="h-text">
+    <h2 id="h-text">② 카드 정보 · 문구</h2>
+    <div class="pair">
+      <div style="flex:1;min-width:0"><label class="f" for="playerName">선수 이름</label><input id="playerName" type="text" maxlength="20" style="width:100%"></div>
+      <div style="width:80px"><label class="f" for="number">등번호</label><input id="number" type="text" maxlength="4" style="width:100%"></div>
+    </div>
+    <label class="f" for="subtitle">한 줄 정보 (날짜·구장·기록 등)</label>
+    <input id="subtitle" type="text" maxlength="40" style="width:100%">
+    <p class="hint">선수 이름과 한 줄 정보는 아래 띠에, 등번호는 왼쪽 위에 들어갑니다. 비우면 표시하지 않습니다.</p>
+    <label class="f" for="text">응원 문구 (Enter로 줄바꿈)</label>
+    <textarea id="text" maxlength="2000"></textarea>
+    <label class="f" for="x">가로 위치 %</label>
+    <div class="pair"><input id="x" type="range" min="0" max="100" step="1"><input id="xN" type="number" min="0" max="100" aria-label="가로 위치 숫자"></div>
+    <label class="f" for="y">세로 위치 %</label>
+    <div class="pair"><input id="y" type="range" min="0" max="100" step="1"><input id="yN" type="number" min="0" max="100" aria-label="세로 위치 숫자"></div>
+    <label class="f" for="size">글자 크기 px (1080 기준)</label>
+    <div class="pair"><input id="size" type="range" min="8" max="300" step="1"><input id="sizeN" type="number" min="8" max="300" aria-label="글자 크기 숫자"></div>
+    <label class="f" for="boxWidth">문구 영역 폭 %</label>
+    <div class="pair"><input id="boxWidth" type="range" min="20" max="100" step="1"><input id="boxWidthN" type="number" min="20" max="100" aria-label="문구 영역 폭 숫자"></div>
+    <div class="colors" style="margin-top:10px">
+      <label>글자색<input id="color" type="color"></label>
+      <label>테두리색<input id="strokeColor" type="color"></label>
+      <label>테두리 두께
+        <select id="strokeWidth"><option value="0">없음</option><option value="3">3</option><option value="6">6</option><option value="10">10</option><option value="16">16</option></select>
+      </label>
+      <label>굵기
+        <select id="weight"><option value="400">보통</option><option value="700">굵게</option><option value="900">아주 굵게</option></select>
+      </label>
+    </div>
+    <h3>정렬</h3>
+    <div class="seg" id="alignSeg">
+      <button data-align="left">왼쪽</button><button data-align="center">가운데</button><button data-align="right">오른쪽</button>
+    </div>
+    <label class="row" style="font-size:13px"><input id="autoFit" type="checkbox"> 넘치면 글자 크기 자동 축소</label>
+
+    <h2 style="margin-top:18px">③ 내려받기</h2>
+    <div class="row">
+      <select id="format" aria-label="파일 형식"><option value="png">PNG</option><option value="jpeg">JPEG</option></select>
+      <button id="downloadBtn" class="primary">이미지 내려받기</button>
+    </div>
+    <button id="compareBtn">미리보기 ↔ 파일 대조</button>
+    <div id="compareOut" class="hint"></div>
+    <p class="hint">내려받는 파일은 캔버스로 새로 그려 저장하므로 원본의 위치(GPS)·카메라 정보 같은 메타데이터가 들어가지 않습니다.</p>
+  </section>
+</main>
+
+<div class="wrapwide">
+<section class="panel wide" aria-labelledby="h-tpl">
+  <h2 id="h-tpl">④ 내 템플릿 <span class="tpl-meta" id="tplCount"></span></h2>
+  <p class="hint">템플릿은 화면비·카드 정보·문구·위치·크기·색·정렬·테두리·팀 컬러를 저장합니다(이미지는 저장하지 않음). 이 브라우저에 저장되어 새로고침해도 유지됩니다.</p>
+  <div class="row">
+    <input id="tplName" type="text" maxlength="40" placeholder="템플릿 이름 (비우면 자동)" aria-label="새 템플릿 이름">
+    <button id="tplCreate" class="primary">현재 편집을 새 템플릿으로 저장</button>
+    <button id="tplExamples">예시 템플릿 3개 추가</button>
+    <button id="jsonExport">JSON 내보내기</button>
+    <label class="btn file" style="width:auto">JSON 가져오기<input id="jsonImport" type="file" accept="application/json,.json"></label>
+  </div>
+  <ul id="tplList" class="tpl-list"></ul>
+</section>
+
+<section class="panel wide" aria-labelledby="h-test">
+  <h2 id="h-test">⑤ 극단 입력 12건 자동 검사</h2>
+  <p class="hint">검사는 별도의 캔버스에서 실행되므로 지금 편집 중인 내용과 저장된 템플릿을 바꾸지 않습니다. 이미지 3종(세로·가로·투명)은 이 페이지가 직접 그린 합성 이미지입니다.</p>
+  <div class="row">
+    <label style="font-size:13px"><input id="legacyMode" type="checkbox"> 수정 전 구현으로 검사 (글자 단위 줄바꿈 · 자동 축소/범위 고정 없음)</label>
+    <button id="runTests" class="primary">12건 검사 실행</button>
+    <button id="copyMd">결과 Markdown 복사</button>
+  </div>
+  <div class="tablewrap"><table id="testTable"><thead><tr><th>#</th><th>항목</th><th>입력</th><th>예상값</th><th>결과</th><th>근거</th></tr></thead><tbody></tbody></table></div>
+  <textarea id="mdOut" readonly aria-label="검사 결과 Markdown" placeholder="검사를 실행하면 결과표가 여기에 Markdown으로 나옵니다."></textarea>
+</section>
+</div>
+
+<footer>
+  이 도구는 개인이 만든 팬 제작 도구이며 KBO 및 각 구단과 관련이 없습니다. 구단 로고·선수 사진 등 권리가 있는 이미지는 넣지 마세요.
+  개인정보·쿠키·분석 도구를 쓰지 않습니다. 템플릿과 편집 중 문구만 이 브라우저의 localStorage에 저장됩니다.
+  글꼴: Noto Sans KR (Google Fonts, SIL Open Font License).
+</footer>
+
+<script>
+'use strict';
+/* ---------- 기본 설정 ---------- */
+const RATIOS = { '1:1':[1080,1080], '4:5':[1080,1350], '9:16':[1080,1920] };
+const LIMITS = { x:[0,100], y:[0,100], size:[8,300], boxWidth:[20,100], strokeWidth:[0,20], zoom:[100,300], panX:[0,100], panY:[0,100] };
+const ALIGNS = ['left','center','right'];
+const WEIGHTS = ['400','700','900'];
+const HEX = /^#[0-9a-fA-F]{6}$/;
+const DEFAULT = Object.freeze({ ratio:'4:5', text:'오늘도 끝까지 응원합니다 ⚾', x:50, y:62, size:72, weight:'900',
+  color:'#ffffff', strokeColor:'#13294b', strokeWidth:10, align:'center', boxWidth:90, autoFit:true,
+  bg:'#222222', zoom:100, panX:50, panY:50, format:'png',
+  playerName:'내 최애 선수', number:'7', subtitle:'직관 인증 · 2026 시즌', frame:true, frameColor:'#13294b', accent:'#c8102e' });
+const TEMPLATE_FIELDS = ['ratio','text','x','y','size','weight','color','strokeColor','strokeWidth','align','boxWidth','autoFit','bg',
+  'playerName','number','subtitle','frame','frameColor','accent'];
+const STR_LIMITS = { playerName:20, number:4, subtitle:40 };
+/* 특정 구단을 나타내지 않는 일반 색 조합 */
+const PRESETS = [
+  { name:'네이비·레드', frameColor:'#13294b', accent:'#c8102e' },
+  { name:'블랙·골드', frameColor:'#111111', accent:'#f2b705' },
+  { name:'레드·차콜', frameColor:'#b5121b', accent:'#2b2b2b' },
+  { name:'블루·화이트', frameColor:'#0046ad', accent:'#f4f6fa' },
+  { name:'그린·옐로', frameColor:'#0b6b3a', accent:'#f2c200' },
+  { name:'오렌지·블랙', frameColor:'#f37321', accent:'#1a1a1a' },
+  { name:'버건디·실버', frameColor:'#7a1f2b', accent:'#9aa3ad' },
+  { name:'스카이·네이비', frameColor:'#4aa3df', accent:'#13294b' },
+];
+const FONT_STACK = '"Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif';
+const MAX_FILE = 20 * 1024 * 1024, MAX_SIDE = 8000, MAX_PIXELS = 40e6;
+const TPL_KEY = 'cardstudio.templates.v1', DRAFT_KEY = 'cardstudio.draft.v1';
+const MAX_TEMPLATES = 200, MAX_JSON = 1024 * 1024;
+
+const $ = id => document.getElementById(id);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+/* localStorage는 사생활 모드 등에서 실패할 수 있으므로 감싼다 */
+const store = {
+  get(k){ try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v){ try { localStorage.setItem(k, v); return true; } catch { return false; } }
+};
+
+/* 상태를 항상 허용 범위 안의 값으로 정리한다 */
+function sanitize(s){
+  const o = { ...DEFAULT };
+  if (!s || typeof s !== 'object') return o;
+  if (Object.hasOwn(RATIOS, s.ratio)) o.ratio = s.ratio;
+  if (typeof s.text === 'string') o.text = s.text.slice(0, 2000);
+  for (const k of Object.keys(LIMITS)){
+    const n = Number(s[k]);
+    if (s[k] !== '' && s[k] != null && Number.isFinite(n)) o[k] = clamp(Math.round(n), LIMITS[k][0], LIMITS[k][1]);
+  }
+  if (WEIGHTS.includes(String(s.weight))) o.weight = String(s.weight);
+  for (const k of Object.keys(STR_LIMITS)) if (typeof s[k] === 'string') o[k] = Array.from(s[k].replace(/[\r\n]+/g, ' ')).slice(0, STR_LIMITS[k]).join('');
+  if (typeof s.frame === 'boolean') o.frame = s.frame;
+  for (const k of ['color','strokeColor','bg','frameColor','accent']) if (typeof s[k] === 'string' && HEX.test(s[k])) o[k] = s[k].toLowerCase();
+  if (ALIGNS.includes(s.align)) o.align = s.align;
+  if (typeof s.autoFit === 'boolean') o.autoFit = s.autoFit;
+  if (s.format === 'png' || s.format === 'jpeg') o.format = s.format;
+  return o;
+}
+
+/* ---------- 글꼴 준비 ---------- */
+let cssReady = null;
+function fontCss(){
+  if (!cssReady){
+    const link = $('gfont');
+    cssReady = new Promise(res => {
+      if (link.sheet) return res();
+      link.addEventListener('load', res); link.addEventListener('error', res); setTimeout(res, 4000);
+    });
+  }
+  return cssReady;
+}
+async function ensureFonts(st = state){
+  await fontCss();
+  try {
+    // Google 글꼴은 글자 범위별로 나뉘어 있어, 실제 문구를 넘겨야 필요한 조각이 내려온다
+    const all = [st.text, st.playerName, st.number, st.subtitle].join('') + '가A';
+    await Promise.race([Promise.all([...new Set([st.weight, '400', '900'])].map(w => document.fonts.load(`${w} 40px "Noto Sans KR"`, all))), wait(5000)]);
+  } catch {}
+}
+
+/* ---------- 줄바꿈 ---------- */
+const segmenter = (typeof Intl !== 'undefined' && Intl.Segmenter) ? new Intl.Segmenter('ko', { granularity:'grapheme' }) : null;
+const graphemes = s => segmenter ? Array.from(segmenter.segment(s), x => x.segment) : Array.from(s);
+
+/* 수정 후: 띄어쓰기 단위로 줄바꿈, 너무 긴 단어는 '보이는 글자(그래핌)' 단위로 자른다 → 이모지가 쪼개지지 않음 */
+function wrapLines(ctx, text, maxW){
+  const out = [];
+  for (const para of text.split(/\r\n|\r|\n/)){
+    if (para.trim() === ''){ out.push(''); continue; }
+    let line = '';
+    for (const tok of para.split(/(\s+)/)){
+      if (tok === '') continue;
+      if (/^\s+$/.test(tok)){ if (line) line += ' '; continue; }
+      if (ctx.measureText(line + tok).width <= maxW){ line += tok; continue; }
+      if (line.trim()){ out.push(line.trimEnd()); line = ''; }
+      if (ctx.measureText(tok).width <= maxW){ line = tok; continue; }
+      for (const g of graphemes(tok)){
+        if (line && ctx.measureText(line + g).width > maxW){ out.push(line); line = g; }
+        else line += g;
+      }
+    }
+    out.push(line.trimEnd());
+  }
+  return out;
+}
+/* 수정 전(비교용): 문자 코드 단위로 자름 → 이모지가 반으로 갈라질 수 있음 */
+function wrapLinesLegacy(ctx, text, maxW){
+  const out = []; let line = '';
+  for (let i = 0; i < text.length; i++){
+    const c = text[i];
+    if (c === '\n'){ out.push(line); line = ''; continue; }
+    if (line && ctx.measureText(line + c).width > maxW){ out.push(line); line = c; } else line += c;
+  }
+  out.push(line);
+  return out;
+}
+
+const fontSpec = (st, px) => `${st.weight} ${px}px ${FONT_STACK}`;
+
+/* 문구 배치 계산: 미리보기와 파일이 같은 함수·같은 좌표(1080 기준 캔버스)를 쓴다 */
+function layoutText(ctx, st, W, H, legacy = false, bottomLimit = H){
+  const margin = Math.round(W * 0.04);
+  const areaBottom = legacy ? H : Math.min(H, bottomLimit); // 이름 띠와 겹치지 않게
+  const boxW = (W - margin * 2) * st.boxWidth / 100;
+  const basePx = st.size * W / 1080;
+  let px = basePx, lines = [], widths = [], lh = 0, h = 0;
+  if (st.text.trim() !== ''){
+    for (let i = 0; i < 80; i++){
+      ctx.font = fontSpec(st, px);
+      lines = legacy ? wrapLinesLegacy(ctx, st.text, boxW) : wrapLines(ctx, st.text, boxW);
+      widths = lines.map(l => ctx.measureText(l).width);
+      lh = px * 1.25; h = lh * lines.length;
+      const tooTall = h > areaBottom - margin * 2, tooWide = widths.some(w => w > boxW + 0.5);
+      if (legacy || !st.autoFit || (!tooTall && !tooWide) || px <= 10) break;
+      px = Math.max(10, px * 0.92);
+    }
+  }
+  let left = W * st.x / 100 - boxW / 2;
+  let top = H * st.y / 100 - h / 2;
+  if (!legacy){ // 문구 영역이 캔버스 밖으로 나가지 않도록 고정
+    left = clamp(left, margin, W - margin - boxW);
+    top = clamp(top, margin, Math.max(margin, areaBottom - margin - h));
+  }
+  const anchorX = st.align === 'left' ? left : st.align === 'right' ? left + boxW : left + boxW / 2;
+  return { lines, widths, px, basePx, lh, h, top, left, boxW, anchorX, margin };
+}
+
+/* 한 줄짜리 글(이름·등번호·한 줄 정보): 폭을 넘으면 글자 크기를 줄인다 */
+function fitSingle(ctx, text, weight, px, maxW, legacy){
+  if (!text) return { px, w:0 };
+  for (let i = 0; i < 80; i++){
+    ctx.font = `${weight} ${px}px ${FONT_STACK}`;
+    const w = ctx.measureText(text).width;
+    if (legacy || w <= maxW || px <= 10) return { px, w };
+    px = Math.max(10, px * 0.92);
+  }
+  return { px, w:ctx.measureText(text).width };
+}
+const isLight = hex => { const [r, g, b] = [1,3,5].map(i => parseInt(hex.slice(i, i+2), 16) / 255); return 0.2126*r + 0.7152*g + 0.0722*b > 0.6; };
+
+function layoutCard(ctx, st, W, H, legacy){
+  const fw = st.frame ? Math.round(W * 0.028) : 0;
+  const pad = Math.round(W * 0.045);
+  const name = st.playerName.trim(), sub = st.subtitle.trim(), numTxt = st.number.trim();
+  const items = [];
+  let band = null, num = null;
+  if (name || sub){
+    const h = Math.round(W * (name && sub ? 0.17 : 0.12));
+    const x = fw, y = H - fw - h, w = W - fw * 2, maxW = w - pad * 2;
+    const n = fitSingle(ctx, name, '900', W * 0.068, maxW, legacy);
+    const s = fitSingle(ctx, sub, '400', W * 0.034, maxW, legacy);
+    band = { x, y, w, h, pad, name, sub, n, s };
+    if (name) items.push({ label:'선수 이름', text:name, w:n.w, maxW });
+    if (sub) items.push({ label:'한 줄 정보', text:sub, w:s.w, maxW });
+  }
+  if (numTxt){
+    const maxW = W * 0.4;
+    const f = fitSingle(ctx, numTxt, '900', W * 0.17, maxW, legacy);
+    num = { text:numTxt, x:fw + pad, y:fw + Math.round(pad * 0.6), ...f };
+    items.push({ label:'등번호', text:numTxt, w:f.w, maxW });
+  }
+  return { fw, band, num, items, bottom: band ? band.y : H - fw };
+}
+
+function drawCard(ctx, st, W, H, C){
+  const light = isLight(st.accent);
+  if (C.fw){
+    ctx.strokeStyle = st.frameColor; ctx.lineWidth = C.fw; ctx.strokeRect(C.fw / 2, C.fw / 2, W - C.fw, H - C.fw);
+    const t = Math.max(2, Math.round(C.fw * 0.3)), o = C.fw + t;
+    ctx.strokeStyle = st.accent; ctx.lineWidth = t; ctx.strokeRect(o, o, W - o * 2, H - o * 2);
+  }
+  ctx.textAlign = 'left';
+  if (C.band){
+    const B = C.band;
+    ctx.globalAlpha = 0.92; ctx.fillStyle = st.accent; ctx.fillRect(B.x, B.y, B.w, B.h); ctx.globalAlpha = 1;
+    ctx.fillStyle = light ? '#111111' : '#ffffff';
+    ctx.textBaseline = 'middle';
+    const both = B.name && B.sub;
+    if (B.name){ ctx.font = `900 ${B.n.px}px ${FONT_STACK}`; ctx.fillText(B.name, B.x + B.pad, B.y + B.h * (both ? 0.38 : 0.5)); }
+    if (B.sub){ ctx.font = `400 ${B.s.px}px ${FONT_STACK}`; ctx.fillText(B.sub, B.x + B.pad, B.y + B.h * (both ? 0.74 : 0.5)); }
+  }
+  if (C.num){
+    ctx.font = `900 ${C.num.px}px ${FONT_STACK}`; ctx.textBaseline = 'top'; ctx.lineJoin = 'round';
+    ctx.strokeStyle = light ? st.frameColor : '#ffffff'; ctx.lineWidth = Math.max(4, C.num.px * 0.08);
+    ctx.strokeText(C.num.text, C.num.x, C.num.y);
+    ctx.fillStyle = st.accent; ctx.fillText(C.num.text, C.num.x, C.num.y);
+  }
+}
+
+function render(canvas, st, img, legacy = false){
+  const [W, H] = RATIOS[st.ratio];
+  if (canvas.width !== W) canvas.width = W;
+  if (canvas.height !== H) canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  // 미리보기 캔버스는 재사용되므로 이전 그리기 설정(선 모서리 모양 등)이 남지 않게 매번 초기화한다
+  if (typeof ctx.reset === 'function') ctx.reset();
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  ctx.lineJoin = 'miter'; ctx.miterLimit = 10; ctx.lineWidth = 1;
+  ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
+  ctx.shadowColor = 'rgba(0,0,0,0)'; ctx.shadowBlur = 0;
+  ctx.fillStyle = st.bg;
+  ctx.fillRect(0, 0, W, H);
+  if (img){
+    const iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+    const s = Math.max(W / iw, H / ih) * st.zoom / 100;
+    const dw = iw * s, dh = ih * s;
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(img, (W - dw) * st.panX / 100, (H - dh) * st.panY / 100, dw, dh);
+  }
+  const C = layoutCard(ctx, st, W, H, legacy);
+  drawCard(ctx, st, W, H, C);
+  const L = layoutText(ctx, st, W, H, legacy, C.bottom);
+  L.card = C;
+  if (L.lines.length){
+    ctx.font = fontSpec(st, L.px);
+    ctx.textAlign = st.align; ctx.textBaseline = 'middle';
+    ctx.lineJoin = 'round'; ctx.miterLimit = 2;
+    const sw = st.strokeWidth * (W / 1080) * (L.px / L.basePx);
+    L.lines.forEach((ln, i) => {
+      if (!ln) return;
+      const y = L.top + L.lh * (i + 0.5);
+      if (sw > 0){ ctx.strokeStyle = st.strokeColor; ctx.lineWidth = sw; ctx.strokeText(ln, L.anchorX, y); }
+      ctx.fillStyle = st.color; ctx.fillText(ln, L.anchorX, y);
+    });
+  }
+  return L;
+}
+
+/* ---------- 상태 / 미리보기 ---------- */
+let state = sanitize(safeParse(store.get(DRAFT_KEY)));
+let image = null; // { el, url, name, w, h, type }
+let activeTplId = null;
+const preview = $('preview');
+
+function safeParse(s){ try { return s ? JSON.parse(s) : null; } catch { return null; } }
+
+function draw(){
+  const L = render(preview, state, image && image.el);
+  const [W, H] = RATIOS[state.ratio];
+  let note = `캔버스 ${W}×${H}px · ${state.ratio}`;
+  if (L.lines.length) note += ` · ${L.lines.length}줄 · 실제 글자 크기 ${Math.round(L.px)}px`;
+  if (L.px < L.basePx - 0.5) note += ' (영역에 맞게 자동 축소됨)';
+  $('sizeInfo').textContent = note;
+}
+let fontTimer = 0;
+function drawSoon(){ // 즉시 그리고, 글꼴 조각이 도착하면 한 번 더 그린다
+  draw();
+  const my = ++fontTimer;
+  ensureFonts().then(() => { if (my === fontTimer) draw(); });
+}
+function saveDraft(){ store.set(DRAFT_KEY, JSON.stringify(state)); }
+
+function syncControls(){
+  $('text').value = state.text;
+  for (const k of ['x','y','size','boxWidth','zoom','panX','panY']){ $(k).value = state[k]; $(k + 'N').value = state[k]; }
+  for (const k of ['color','strokeColor','bg','frameColor','accent']) $(k).value = state[k];
+  for (const k of Object.keys(STR_LIMITS)) if ($(k).value !== state[k]) $(k).value = state[k];
+  $('frame').checked = state.frame;
+  document.querySelectorAll('#presetRow button').forEach(b => { const p = PRESETS[+b.dataset.preset]; b.setAttribute('aria-pressed', String(p.frameColor === state.frameColor && p.accent === state.accent)); });
+  $('strokeWidth').value = String(state.strokeWidth);
+  if (![...$('strokeWidth').options].some(o => o.value === String(state.strokeWidth))){
+    const o = document.createElement('option'); o.value = o.textContent = String(state.strokeWidth); $('strokeWidth').append(o); $('strokeWidth').value = o.value;
+  }
+  $('weight').value = state.weight;
+  $('autoFit').checked = state.autoFit;
+  $('format').value = state.format;
+  document.querySelectorAll('#ratioSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.ratio === state.ratio)));
+  document.querySelectorAll('#alignSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.align === state.align)));
+}
+function afterChange(){ syncControls(); drawSoon(); saveDraft(); }
+
+function setValue(key, raw, fromNumberBox){
+  const next = sanitize({ ...state, [key]: raw });
+  if (fromNumberBox && LIMITS[key] && String(next[key]) !== String(raw).trim() && raw !== ''){
+    showMsg(`입력값 ${String(raw).slice(0,12)}은(는) 허용 범위 ${LIMITS[key][0]}~${LIMITS[key][1]}를 벗어나 ${next[key]}(으)로 조정했습니다.`, 'info');
+  }
+  state = next;
+  afterChange();
+}
+
+/* ---------- 메시지 ---------- */
+function showMsg(text, kind = 'info', action){
+  const box = document.createElement('div');
+  box.className = 'box ' + kind;
+  const span = document.createElement('span'); span.textContent = text; box.append(span);
+  if (action){
+    const b = document.createElement('button'); b.textContent = action.label;
+    b.addEventListener('click', () => action.fn()); box.append(b);
+  }
+  $('msg').replaceChildren(box);
+}
+const shortName = n => { n = String(n || '(이름 없음)'); return n.length > 60 ? n.slice(0, 57) + '…' : n; };
+
+/* ---------- 이미지 불러오기 ---------- */
+function detectType(b){
+  const at = (i, ...v) => v.every((x, j) => b[i + j] === x);
+  if (b.length >= 8 && at(0, 0x89,0x50,0x4E,0x47,0x0D,0x0A,0x1A,0x0A)) return 'png';
+  if (b.length >= 3 && at(0, 0xFF,0xD8,0xFF)) return 'jpeg';
+  if (at(0, 0x47,0x49,0x46)) return 'GIF';
+  if (at(0, 0x52,0x49,0x46,0x46) && at(8, 0x57,0x45,0x42,0x50)) return 'WebP';
+  if (at(0, 0x42,0x4D)) return 'BMP';
+  if (at(0, 0x25,0x50,0x44,0x46)) return 'PDF';
+  if (at(4, 0x66,0x74,0x79,0x70)) return 'HEIC/AVIF';
+  const head = String.fromCharCode(...b.slice(0, 64)).trimStart().toLowerCase();
+  if (head.startsWith('<svg') || head.startsWith('<?xml')) return 'SVG';
+  return '알 수 없는 형식';
+}
+async function checkFile(file){
+  if (!file || typeof file.size !== 'number') return { ok:false, reason:'파일이 선택되지 않았습니다' };
+  if (file.size === 0) return { ok:false, reason:'빈 파일(0바이트)입니다' };
+  if (file.size > MAX_FILE) return { ok:false, reason:`파일이 너무 큽니다 (${(file.size/1048576).toFixed(1)}MB, 최대 20MB)` };
+  let bytes;
+  try { bytes = new Uint8Array(await file.slice(0, 64).arrayBuffer()); }
+  catch { return { ok:false, reason:'파일을 읽을 수 없습니다' }; }
+  const t = detectType(bytes);
+  if (t !== 'png' && t !== 'jpeg') return { ok:false, reason:`PNG·JPEG만 지원합니다 (이 파일의 실제 형식: ${t})` };
+  return { ok:true, type:t };
+}
+function decodeImage(file){
+  return new Promise(res => {
+    const url = URL.createObjectURL(file);
+    const im = new Image();
+    im.onload = () => res({ ok:true, img:im, url });
+    im.onerror = () => { URL.revokeObjectURL(url); res({ ok:false, reason:'파일이 손상되었거나 이미지로 열 수 없습니다' }); };
+    im.src = url;
+  });
+}
+let loadSeq = 0;
+async function handleFile(file){
+  const name = shortName(file && file.name);
+  const fail = reason => { showMsg(`"${name}" 파일을 불러오지 않았습니다 — ${reason}. 기존 작업은 그대로 유지됩니다.`, 'error'); return { ok:false, reason }; };
+  const c = await checkFile(file);
+  if (!c.ok) return fail(c.reason);
+  const my = ++loadSeq;
+  const d = await decodeImage(file);
+  if (!d.ok) return fail(d.reason);
+  const w = d.img.naturalWidth, h = d.img.naturalHeight;
+  if (!w || !h || w > MAX_SIDE || h > MAX_SIDE || w * h > MAX_PIXELS){ URL.revokeObjectURL(d.url); return fail(`이미지 크기가 허용 범위를 벗어났습니다 (${w}×${h}px, 한 변 최대 ${MAX_SIDE}px)`); }
+  if (my !== loadSeq){ URL.revokeObjectURL(d.url); return { ok:false, reason:'더 나중에 고른 파일이 있어 건너뜀' }; }
+  if (image) URL.revokeObjectURL(image.url);
+  image = { el:d.img, url:d.url, name, w, h, type:c.type };
+  state = sanitize({ ...state, zoom:100, panX:50, panY:50 });
+  $('imgInfo').textContent = `${name} · ${c.type.toUpperCase()} · ${w}×${h}px`;
+  afterChange();
+  showMsg(`"${name}" 이미지를 불러왔습니다 (${w}×${h}px).`, 'ok');
+  return { ok:true };
+}
+
+/* 직접 그리는 합성 샘플 이미지 (저작권·메타데이터 걱정 없음) */
+function makeSampleCanvas(kind){
+  const size = { landscape:[1600,900], portrait:[900,1600], square:[1200,1200], transparent:[1200,1200] }[kind];
+  const c = document.createElement('canvas'); c.width = size[0]; c.height = size[1];
+  const g = c.getContext('2d'); const [w, h] = size;
+  const lin = (y0, y1, stops) => { const gr = g.createLinearGradient(0, y0, 0, y1); stops.forEach((s, i) => gr.addColorStop(i / (stops.length - 1), s)); return gr; };
+  if (kind === 'transparent'){ // 배경 없는 야구공 + 배트
+    g.clearRect(0, 0, w, h);
+    g.save(); g.translate(w*0.62, h*0.55); g.rotate(-0.75);
+    g.fillStyle = '#c68642'; g.beginPath(); g.moveTo(-w*0.03, h*0.38); g.lineTo(w*0.03, h*0.38); g.lineTo(w*0.055, -h*0.38); g.arc(0, -h*0.38, w*0.055, 0, Math.PI, true); g.closePath(); g.fill();
+    g.fillStyle = '#5a3a1e'; g.fillRect(-w*0.035, h*0.3, w*0.07, h*0.09);
+    g.restore();
+    drawBall(g, w*0.36, h*0.62, w*0.17);
+    return c;
+  }
+  if (kind === 'landscape'){ // 야구장 전경
+    g.fillStyle = lin(0, h*0.42, ['#0b1a3a', '#24508f']); g.fillRect(0, 0, w, h*0.42);
+    g.fillStyle = '#1d2433'; g.fillRect(0, h*0.30, w, h*0.14);
+    for (let i = 0; i < 160; i++){ g.fillStyle = ['#c8102e','#f2f2f2','#13294b','#f2b705'][i % 4]; g.fillRect((i * 97) % w, h*0.31 + ((i * 37) % 60) / 60 * h*0.11, 6, 6); }
+    for (let i = 0; i < 12; i++){ g.fillStyle = i % 2 ? '#2e8b3e' : '#33994a'; g.fillRect(0, h*0.44 + i * h*0.05, w, h*0.05); }
+    g.fillStyle = '#b5713c'; g.beginPath(); g.moveTo(w*0.5, h*0.5); g.lineTo(w*0.78, h*0.74); g.lineTo(w*0.5, h*1.02); g.lineTo(w*0.22, h*0.74); g.closePath(); g.fill();
+    g.fillStyle = '#33994a'; g.beginPath(); g.moveTo(w*0.5, h*0.6); g.lineTo(w*0.66, h*0.74); g.lineTo(w*0.5, h*0.9); g.lineTo(w*0.34, h*0.74); g.closePath(); g.fill();
+    g.fillStyle = '#ffffff'; for (const [bx, by] of [[0.5,0.52],[0.76,0.74],[0.24,0.74],[0.5,0.97]]){ g.fillRect(w*bx - 10, h*by - 10, 20, 20); }
+    for (const lx of [0.08, 0.92]){ g.fillStyle = 'rgba(255,248,200,.9)'; g.beginPath(); g.arc(w*lx, h*0.08, 40, 0, Math.PI*2); g.fill(); }
+    return c;
+  }
+  if (kind === 'portrait'){ // 야간 경기 조명
+    g.fillStyle = lin(0, h, ['#050b1f', '#14306b', '#1f6b3a']); g.fillRect(0, 0, w, h);
+    for (const lx of [0.18, 0.82]){
+      g.fillStyle = '#2a2f3a'; g.fillRect(w*lx - 8, h*0.12, 16, h*0.5);
+      const glow = g.createRadialGradient(w*lx, h*0.1, 10, w*lx, h*0.1, w*0.35);
+      glow.addColorStop(0, 'rgba(255,250,210,.95)'); glow.addColorStop(1, 'rgba(255,250,210,0)');
+      g.fillStyle = glow; g.fillRect(0, 0, w, h*0.5);
+      g.fillStyle = '#fffbe0'; for (let r = 0; r < 3; r++) for (let k = 0; k < 4; k++) g.fillRect(w*lx - 70 + k*36, h*0.07 + r*30, 28, 22);
+    }
+    drawBall(g, w*0.5, h*0.62, w*0.22);
+    return c;
+  }
+  // square: 야구공 클로즈업
+  const rg = g.createRadialGradient(w/2, h/2, w*0.1, w/2, h/2, w*0.75);
+  rg.addColorStop(0, '#2f7d46'); rg.addColorStop(1, '#0d3319');
+  g.fillStyle = rg; g.fillRect(0, 0, w, h);
+  drawBall(g, w*0.5, h*0.5, w*0.33);
+  return c;
+}
+function drawBall(g, cx, cy, r){
+  const sh = g.createRadialGradient(cx - r*0.35, cy - r*0.35, r*0.1, cx, cy, r);
+  sh.addColorStop(0, '#ffffff'); sh.addColorStop(1, '#d9d4c7');
+  g.fillStyle = sh; g.beginPath(); g.arc(cx, cy, r, 0, Math.PI*2); g.fill();
+  g.strokeStyle = '#c8102e'; g.lineWidth = Math.max(2, r * 0.035);
+  for (const side of [-1, 1]){
+    const ax = cx + side * r * 1.25;
+    g.beginPath(); g.arc(ax, cy, r * 0.85, Math.PI - 0.95, Math.PI + 0.95); if (side < 0){ g.beginPath(); g.arc(ax, cy, r * 0.85, -0.95, 0.95); }
+    g.stroke();
+    for (let a = -0.85; a <= 0.85; a += 0.17){
+      const base = side > 0 ? Math.PI + a : a;
+      const px1 = ax + Math.cos(base) * r * 0.85, py1 = cy + Math.sin(base) * r * 0.85;
+      const nx = Math.cos(base), ny = Math.sin(base), s = r * 0.07;
+      g.beginPath(); g.moveTo(px1 - ny * s + nx * s * 0.6, py1 + nx * s + ny * s * 0.6); g.lineTo(px1, py1); g.lineTo(px1 + ny * s + nx * s * 0.6, py1 - nx * s + ny * s * 0.6); g.stroke();
+    }
+  }
+}
+const toBlob = (c, type = 'image/png', q) => new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error('toBlob 실패')), type, q));
+async function sampleFile(kind){
+  const blob = await toBlob(makeSampleCanvas(kind));
+  return new File([blob], `sample-${kind}.png`, { type:'image/png' });
+}
+
+/* ---------- 내려받기 / 대조 ---------- */
+function stamp(){ const d = new Date(), p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`; }
+async function makeExportBlob(st = state, img = image && image.el){
+  await ensureFonts(st);
+  draw(); // 글꼴 준비 뒤 미리보기도 다시 그림
+  const c = document.createElement('canvas');
+  render(c, st, img);
+  return st.format === 'jpeg' ? toBlob(c, 'image/jpeg', 0.92) : toBlob(c, 'image/png');
+}
+function downloadBlob(blob, name){
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+async function pixelsOfBlob(blob){
+  const bmp = await createImageBitmap(blob, { premultiplyAlpha:'none', colorSpaceConversion:'none' });
+  const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height;
+  const g = c.getContext('2d'); g.drawImage(bmp, 0, 0);
+  return g.getImageData(0, 0, c.width, c.height);
+}
+function diffImages(a, b){
+  if (a.width !== b.width || a.height !== b.height) return { sameSize:false, diffPixels:Infinity, maxDiff:255, mean:255 };
+  let diffPixels = 0, maxDiff = 0, sum = 0;
+  for (let i = 0; i < a.data.length; i += 4){
+    let m = 0;
+    for (let j = 0; j < 3; j++){ const d = Math.abs(a.data[i+j] - b.data[i+j]); sum += d; if (d > m) m = d; }
+    if (m > 2) diffPixels++;
+    if (m > maxDiff) maxDiff = m;
+  }
+  return { sameSize:true, diffPixels, maxDiff, mean: sum / (a.width * a.height * 3) };
+}
+async function compareCanvasWithFile(canvas, st, img){
+  const c = document.createElement('canvas'); render(c, st, img);
+  const blob = st.format === 'jpeg' ? await toBlob(c, 'image/jpeg', 0.92) : await toBlob(c, 'image/png');
+  const fileData = await pixelsOfBlob(blob);
+  const prevData = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+  const d = diffImages(prevData, fileData);
+  const pass = st.format === 'jpeg' ? (d.sameSize && d.mean < 3) : (d.sameSize && d.diffPixels === 0);
+  return { ...d, pass, w:fileData.width, h:fileData.height, blob };
+}
+
+/* ---------- 템플릿 저장소 ---------- */
+let tplStorageBroken = false;
+function newId(){ const r = new Uint8Array(6); crypto.getRandomValues(r); return 't' + Date.now().toString(36) + Array.from(r, x => x.toString(16).padStart(2, '0')).join(''); }
+
+function validateTemplate(t, i){
+  const p = `${i + 1}번째 템플릿`;
+  if (!t || typeof t !== 'object' || Array.isArray(t)) return { error:`${p}: 객체가 아닙니다` };
+  for (const k of ['id','name','ratio','text','x','y','size','color']) if (!Object.hasOwn(t, k)) return { error:`${p}: 필수 항목 "${k}"가 없습니다` };
+  if (typeof t.id !== 'string' || !/^[A-Za-z0-9_-]{1,64}$/.test(t.id)) return { error:`${p}: id 형식이 올바르지 않습니다` };
+  if (typeof t.name !== 'string' || !t.name.trim() || t.name.length > 40) return { error:`${p}: name은 1~40자 문자열이어야 합니다` };
+  if (!Object.hasOwn(RATIOS, t.ratio)) return { error:`${p}: ratio는 1:1, 4:5, 9:16 중 하나여야 합니다` };
+  if (typeof t.text !== 'string' || t.text.length > 2000) return { error:`${p}: text는 2000자 이하 문자열이어야 합니다` };
+  for (const k of ['x','y','size','boxWidth','strokeWidth']){
+    if (!Object.hasOwn(t, k)) continue;
+    if (typeof t[k] !== 'number' || !Number.isFinite(t[k]) || t[k] < LIMITS[k][0] || t[k] > LIMITS[k][1]) return { error:`${p}: ${k}는 ${LIMITS[k][0]}~${LIMITS[k][1]} 숫자여야 합니다` };
+  }
+  for (const k of ['color','strokeColor','bg','frameColor','accent']) if (Object.hasOwn(t, k) && !(typeof t[k] === 'string' && HEX.test(t[k]))) return { error:`${p}: ${k}는 #rrggbb 형식이어야 합니다` };
+  for (const [k, max] of Object.entries(STR_LIMITS)) if (Object.hasOwn(t, k) && !(typeof t[k] === 'string' && Array.from(t[k]).length <= max)) return { error:`${p}: ${k}는 ${max}자 이하 문자열이어야 합니다` };
+  if (Object.hasOwn(t, 'frame') && typeof t.frame !== 'boolean') return { error:`${p}: frame은 true/false여야 합니다` };
+  if (Object.hasOwn(t, 'align') && !ALIGNS.includes(t.align)) return { error:`${p}: align 값이 올바르지 않습니다` };
+  if (Object.hasOwn(t, 'weight') && !WEIGHTS.includes(String(t.weight))) return { error:`${p}: weight 값이 올바르지 않습니다` };
+  if (Object.hasOwn(t, 'autoFit') && typeof t.autoFit !== 'boolean') return { error:`${p}: autoFit은 true/false여야 합니다` };
+  // 알려진 항목만 골라 정리된 새 객체로 만든다
+  const clean = sanitize(t);
+  const out = { id:t.id, name:t.name.trim() };
+  for (const k of TEMPLATE_FIELDS) out[k] = clean[k];
+  out.createdAt = typeof t.createdAt === 'string' ? t.createdAt.slice(0, 40) : new Date().toISOString();
+  out.updatedAt = typeof t.updatedAt === 'string' ? t.updatedAt.slice(0, 40) : out.createdAt;
+  return { template: out };
+}
+function validateBundle(d){
+  if (!d || typeof d !== 'object' || Array.isArray(d)) return { error:'최상위가 { "templates": [...] } 형태의 객체가 아닙니다' };
+  if (!Object.hasOwn(d, 'templates')) return { error:'필수 항목 "templates"가 없습니다' };
+  if (!Array.isArray(d.templates)) return { error:'"templates"가 배열이 아닙니다' };
+  if (d.templates.length > MAX_TEMPLATES) return { error:`템플릿은 최대 ${MAX_TEMPLATES}개까지입니다` };
+  const seen = new Set(), list = [];
+  for (let i = 0; i < d.templates.length; i++){
+    const r = validateTemplate(d.templates[i], i);
+    if (r.error) return { error:r.error };
+    if (seen.has(r.template.id)) return { error:`id "${r.template.id}"가 중복됩니다` };
+    seen.add(r.template.id); list.push(r.template);
+  }
+  return { templates:list };
+}
+function readTemplates(){
+  const raw = store.get(TPL_KEY);
+  if (!raw) return { ok:true, list:[] };
+  const d = safeParse(raw);
+  const r = d ? validateBundle(d) : { error:'JSON 문법 오류' };
+  if (r.error) return { ok:false, error:r.error, list:[] };
+  return { ok:true, list:r.templates };
+}
+function writeTemplates(list){
+  if (tplStorageBroken){ // 깨진 원본은 지우지 않고 백업해 둔다
+    const raw = store.get(TPL_KEY);
+    if (raw) store.set(TPL_KEY + '.backup-' + Date.now(), raw);
+    tplStorageBroken = false;
+  }
+  return store.set(TPL_KEY, JSON.stringify({ app:'card-studio', version:1, templates:list }));
+}
+function currentList(){
+  const r = readTemplates();
+  if (!r.ok){ tplStorageBroken = true; }
+  return r.list;
+}
+
+function createTemplate(name, src = state){
+  const list = currentList();
+  if (list.length >= MAX_TEMPLATES) return { ok:false, reason:`템플릿은 최대 ${MAX_TEMPLATES}개까지 저장할 수 있습니다` };
+  const now = new Date().toISOString();
+  const t = { id:newId(), name:(name || '').trim().slice(0, 40) || `템플릿 ${list.length + 1}`, createdAt:now, updatedAt:now };
+  const clean = sanitize(src);
+  for (const k of TEMPLATE_FIELDS) t[k] = clean[k];
+  if (!writeTemplates([...list, t])) return { ok:false, reason:'브라우저 저장소에 쓸 수 없습니다(사생활 보호 모드 또는 용량 초과)' };
+  if (src === state) activeTplId = t.id;
+  return { ok:true, template:t };
+}
+const EXAMPLES = [
+  { name:'홈런 카드', ratio:'9:16', text:'끝내기 홈런!!\n⚾🔥', x:50, y:45, size:120, playerName:'내 최애 선수', number:'10', subtitle:'2026 시즌 첫 홈런', frameColor:'#111111', accent:'#f2b705', strokeColor:'#111111' },
+  { name:'직관 인증', ratio:'4:5', text:'오늘 직관 승리 요정 ✌️', x:50, y:60, size:76, playerName:'', number:'', subtitle:'○○구장 · 1루 응원석', frameColor:'#13294b', accent:'#c8102e', strokeColor:'#13294b' },
+  { name:'응원 문구', ratio:'1:1', text:'질 때도 이길 때도\n끝까지 함께', x:50, y:45, size:84, playerName:'우리 팀 화이팅', number:'', subtitle:'', frameColor:'#0b6b3a', accent:'#f2c200', strokeColor:'#0b6b3a' },
+];
+function updateTemplate(id, patch){
+  const list = currentList();
+  const idx = list.findIndex(t => t.id === id); // 화면 순서가 아니라 ID로 찾는다
+  if (idx < 0) return { ok:false, reason:'템플릿을 찾을 수 없습니다(이미 삭제됨)' };
+  const t = { ...list[idx], ...patch, id, updatedAt:new Date().toISOString() };
+  const v = validateTemplate(t, idx);
+  if (v.error) return { ok:false, reason:v.error };
+  const next = list.slice(); next[idx] = v.template;
+  if (!writeTemplates(next)) return { ok:false, reason:'브라우저 저장소에 쓸 수 없습니다' };
+  return { ok:true, template:v.template };
+}
+function deleteTemplate(id){
+  const list = currentList();
+  const t = list.find(x => x.id === id);
+  if (!t) return { ok:false, reason:'템플릿을 찾을 수 없습니다(이미 삭제됨)' };
+  if (!writeTemplates(list.filter(x => x.id !== id))) return { ok:false, reason:'브라우저 저장소에 쓸 수 없습니다' };
+  if (activeTplId === id) activeTplId = null;
+  return { ok:true, template:t };
+}
+/* JSON 가져오기: 전체를 먼저 검증하고, 통과했을 때만 한 번에 저장한다 */
+function importTemplatesText(text){
+  if (typeof text !== 'string' || text.length > MAX_JSON) return { ok:false, reason:'파일이 너무 큽니다(최대 1MB)' };
+  let d;
+  try { d = JSON.parse(text); } catch (e) { return { ok:false, reason:'JSON 문법 오류 — ' + String(e.message).slice(0, 120) }; }
+  const r = validateBundle(d);
+  if (r.error) return { ok:false, reason:r.error };
+  const before = currentList();
+  const map = new Map(before.map(t => [t.id, t]));
+  let added = 0, replaced = 0;
+  for (const t of r.templates){ if (map.has(t.id)) replaced++; else added++; map.set(t.id, t); }
+  const next = [...map.values()];
+  if (next.length > MAX_TEMPLATES) return { ok:false, reason:`합치면 ${next.length}개로 최대 ${MAX_TEMPLATES}개를 넘습니다` };
+  if (!writeTemplates(next)) return { ok:false, reason:'브라우저 저장소에 쓸 수 없습니다' };
+  return { ok:true, before:before.length, after:next.length, added, replaced };
+}
+
+function applyTemplate(t){
+  const patch = {}; for (const k of TEMPLATE_FIELDS) patch[k] = t[k];
+  state = sanitize({ ...state, ...patch });
+  activeTplId = t.id;
+  afterChange();
+}
+
+/* 저장된 데이터를 다시 읽어 목록을 그린다 */
+function renderTplList(){
+  const r = readTemplates();
+  if (!r.ok){ tplStorageBroken = true; showMsg(`저장된 템플릿을 읽을 수 없습니다(${r.error}). 원본은 지우지 않고, 새로 저장할 때 백업합니다.`, 'error'); }
+  const ul = $('tplList'); ul.replaceChildren();
+  $('tplCount').textContent = `(${r.list.length}개)`;
+  if (!r.list.length){ const li = document.createElement('li'); li.className = 'tpl-meta'; li.textContent = '아직 템플릿이 없습니다. 위 버튼으로 현재 편집을 저장해 보세요.'; ul.append(li); return; }
+  for (const t of r.list){
+    const li = document.createElement('li'); li.dataset.id = t.id;
+    if (t.id === activeTplId) li.className = 'active';
+    const nameIn = document.createElement('input'); nameIn.type = 'text'; nameIn.maxLength = 40; nameIn.value = t.name; nameIn.setAttribute('aria-label', '템플릿 이름');
+    const meta = document.createElement('div'); meta.className = 'tpl-meta';
+    meta.textContent = `${t.ratio} · ${[t.playerName, t.number && '#' + t.number].filter(Boolean).join(' ') || '카드 정보 없음'} · ${t.size}px · 수정 ${new Date(t.updatedAt).toLocaleString('ko-KR')}`;
+    const txt = document.createElement('div'); txt.className = 'tpl-text'; txt.textContent = t.text || '(빈 문구)';
+    const row = document.createElement('div'); row.className = 'row';
+    const mk = (label, fn, cls) => { const b = document.createElement('button'); b.textContent = label; if (cls) b.className = cls; b.addEventListener('click', fn); row.append(b); return b; };
+    mk('불러오기', () => onLoadTpl(t.id), 'primary');
+    mk('이름 저장', () => onRename(t.id, nameIn.value));
+    mk('현재 편집으로 덮어쓰기', () => onOverwrite(t.id));
+    const del = mk('삭제', () => {
+      if (del.dataset.armed !== '1'){ del.dataset.armed = '1'; del.textContent = '한 번 더 누르면 삭제'; setTimeout(() => { if (del.isConnected){ del.dataset.armed = ''; del.textContent = '삭제'; } }, 3000); return; }
+      onDelete(t.id);
+    }, 'danger');
+    li.append(nameIn, meta, txt, row);
+    ul.append(li);
+  }
+}
+function onLoadTpl(id){
+  const t = currentList().find(x => x.id === id);
+  if (!t){ showMsg('템플릿을 찾을 수 없습니다(이미 삭제됨).', 'error'); renderTplList(); return; }
+  const prev = { ...state }, prevActive = activeTplId;
+  applyTemplate(t); renderTplList();
+  showMsg(`"${t.name}" 템플릿을 불러왔습니다. 이전 편집으로 돌아가려면 되돌리기를 누르세요.`, 'ok', { label:'되돌리기', fn:() => { state = prev; activeTplId = prevActive; afterChange(); renderTplList(); showMsg('불러오기 전 편집으로 되돌렸습니다.', 'ok'); } });
+}
+function onRename(id, name){
+  const r = updateTemplate(id, { name:String(name).trim() });
+  showMsg(r.ok ? `이름을 "${r.template.name}"(으)로 바꿨습니다.` : `수정하지 못했습니다 — ${r.reason}`, r.ok ? 'ok' : 'error');
+  renderTplList();
+}
+function onOverwrite(id){
+  const patch = {}; for (const k of TEMPLATE_FIELDS) patch[k] = state[k];
+  const r = updateTemplate(id, patch);
+  if (r.ok) activeTplId = id;
+  showMsg(r.ok ? `"${r.template.name}" 템플릿을 현재 편집 내용으로 수정했습니다.` : `수정하지 못했습니다 — ${r.reason}`, r.ok ? 'ok' : 'error');
+  renderTplList();
+}
+function onDelete(id){
+  const r = deleteTemplate(id);
+  showMsg(r.ok ? `"${r.template.name}" 템플릿을 삭제했습니다.` : `삭제하지 못했습니다 — ${r.reason}`, r.ok ? 'ok' : 'error');
+  renderTplList();
+}
+
+/* ---------- 이벤트 연결 ---------- */
+$('fileInput').addEventListener('change', async e => { const f = e.target.files[0]; e.target.value = ''; if (f) await handleFile(f); });
+const drop = $('drop');
+drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+drop.addEventListener('drop', async e => {
+  e.preventDefault(); drop.classList.remove('over');
+  const files = e.dataTransfer.files;
+  if (!files.length) return showMsg('끌어온 항목에 파일이 없습니다. 기존 작업은 그대로 유지됩니다.', 'error');
+  if (files.length > 1) showMsg('파일은 한 번에 하나만 불러옵니다. 첫 번째 파일만 사용합니다.', 'info');
+  await handleFile(files[0]);
+});
+document.querySelectorAll('[data-sample]').forEach(b => b.addEventListener('click', async () => handleFile(await sampleFile(b.dataset.sample))));
+$('clearImg').addEventListener('click', () => {
+  if (!image) return showMsg('뺄 이미지가 없습니다.', 'info');
+  const prev = image; image = null; $('imgInfo').textContent = '이미지 없음 (배경색만 사용)'; draw();
+  showMsg('이미지를 뺐습니다.', 'ok', { label:'되돌리기', fn:() => { image = prev; $('imgInfo').textContent = `${prev.name} · ${prev.type.toUpperCase()} · ${prev.w}×${prev.h}px`; draw(); showMsg('이미지를 되돌렸습니다.', 'ok'); } });
+});
+document.querySelectorAll('#ratioSeg button').forEach(b => b.addEventListener('click', () => setValue('ratio', b.dataset.ratio)));
+document.querySelectorAll('#alignSeg button').forEach(b => b.addEventListener('click', () => setValue('align', b.dataset.align)));
+for (const k of ['x','y','size','boxWidth','zoom','panX','panY']){
+  $(k).addEventListener('input', e => setValue(k, e.target.value));
+  $(k + 'N').addEventListener('change', e => setValue(k, e.target.value, true));
+}
+$('text').addEventListener('input', e => { state.text = e.target.value.slice(0, 2000); drawSoon(); saveDraft(); });
+for (const k of ['color','strokeColor','bg','frameColor','accent']) $(k).addEventListener('input', e => setValue(k, e.target.value));
+for (const k of Object.keys(STR_LIMITS)) $(k).addEventListener('input', e => { state = sanitize({ ...state, [k]: e.target.value }); drawSoon(); saveDraft(); });
+$('frame').addEventListener('change', e => setValue('frame', e.target.checked));
+PRESETS.forEach((p, i) => {
+  const b = document.createElement('button'); b.className = 'swatch'; b.dataset.preset = String(i);
+  const sw = document.createElement('i'); sw.style.background = `linear-gradient(90deg, ${p.frameColor} 50%, ${p.accent} 50%)`;
+  b.append(sw, document.createTextNode(p.name));
+  b.addEventListener('click', () => { state = sanitize({ ...state, frameColor:p.frameColor, accent:p.accent, strokeColor:p.frameColor }); afterChange(); });
+  $('presetRow').append(b);
+});
+$('strokeWidth').addEventListener('change', e => setValue('strokeWidth', e.target.value));
+$('weight').addEventListener('change', e => setValue('weight', e.target.value));
+$('autoFit').addEventListener('change', e => setValue('autoFit', e.target.checked));
+$('format').addEventListener('change', e => setValue('format', e.target.value));
+
+// 미리보기에서 문구 끌어 옮기기
+let dragging = false;
+function dragTo(e){
+  const r = preview.getBoundingClientRect();
+  state.x = clamp(Math.round((e.clientX - r.left) / r.width * 100), 0, 100);
+  state.y = clamp(Math.round((e.clientY - r.top) / r.height * 100), 0, 100);
+  syncControls(); draw();
+}
+preview.addEventListener('pointerdown', e => { dragging = true; preview.setPointerCapture(e.pointerId); dragTo(e); });
+preview.addEventListener('pointermove', e => { if (dragging) dragTo(e); });
+preview.addEventListener('pointerup', () => { dragging = false; saveDraft(); });
+preview.addEventListener('pointercancel', () => { dragging = false; saveDraft(); });
+
+$('downloadBtn').addEventListener('click', async () => {
+  try {
+    const blob = await makeExportBlob();
+    const ext = state.format === 'jpeg' ? 'jpg' : 'png';
+    const name = `card_${state.ratio.replace(':', 'x')}_${stamp()}.${ext}`;
+    downloadBlob(blob, name);
+    showMsg(`${name} 파일을 내려받았습니다 (${RATIOS[state.ratio].join('×')}px, ${(blob.size/1024).toFixed(0)}KB).`, 'ok');
+  } catch (e) { showMsg('이미지를 만들지 못했습니다 — ' + e.message, 'error'); }
+});
+$('compareBtn').addEventListener('click', async () => {
+  await ensureFonts(); draw();
+  const r = await compareCanvasWithFile(preview, state, image && image.el);
+  $('compareOut').textContent = r.pass
+    ? `일치 ✔ 파일 ${r.w}×${r.h}px = 미리보기 ${preview.width}×${preview.height}px, 다른 픽셀 ${r.diffPixels}개 (${state.format.toUpperCase()}${state.format === 'jpeg' ? `, 평균 오차 ${r.mean.toFixed(2)} — JPEG 압축 오차` : ''})`
+    : `불일치 ✘ 크기 ${r.sameSize ? '같음' : '다름'}, 다른 픽셀 ${r.diffPixels}개, 최대 오차 ${r.maxDiff}`;
+});
+
+$('tplCreate').addEventListener('click', () => {
+  const r = createTemplate($('tplName').value);
+  if (r.ok){ $('tplName').value = ''; showMsg(`"${r.template.name}" 템플릿을 저장했습니다.`, 'ok'); }
+  else showMsg(`저장하지 못했습니다 — ${r.reason}`, 'error');
+  renderTplList();
+});
+$('tplExamples').addEventListener('click', () => {
+  const made = [];
+  for (const ex of EXAMPLES){ const r = createTemplate(ex.name, { ...DEFAULT, ...ex }); if (!r.ok){ showMsg(`예시 템플릿을 추가하지 못했습니다 — ${r.reason}`, 'error'); break; } made.push(ex.name); }
+  if (made.length === EXAMPLES.length) showMsg(`예시 템플릿 ${made.length}개(${made.join(', ')})를 추가했습니다. 불러온 뒤 마음대로 고쳐 쓰세요.`, 'ok');
+  renderTplList();
+});
+$('jsonExport').addEventListener('click', () => {
+  const list = currentList();
+  const blob = new Blob([JSON.stringify({ app:'card-studio', version:1, exportedAt:new Date().toISOString(), templates:list }, null, 2)], { type:'application/json' });
+  downloadBlob(blob, `card-studio-templates_${stamp()}.json`);
+  showMsg(`템플릿 ${list.length}개를 JSON으로 내보냈습니다.`, 'ok');
+});
+$('jsonImport').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  const before = currentList().length;
+  let text;
+  try { text = f.size > MAX_JSON ? null : await f.text(); } catch { text = null; }
+  const r = text == null ? { ok:false, reason:'파일을 읽을 수 없거나 1MB를 넘습니다' } : importTemplatesText(text);
+  if (r.ok) showMsg(`가져오기 완료 — 기존 ${r.before}개 → 현재 ${r.after}개 (새로 ${r.added}개, 같은 ID 덮어씀 ${r.replaced}개).`, 'ok');
+  else showMsg(`가져오기 거부 — ${r.reason}. 아무것도 저장하지 않았고 기존 템플릿 ${before}개는 그대로입니다.`, 'error');
+  renderTplList();
+});
+window.addEventListener('storage', e => { if (e.key === TPL_KEY) renderTplList(); });
+
+/* ---------- 극단 입력 12건 검사 ---------- */
+function stripWs(s){ return s.replace(/\s+/g, ''); }
+const LONE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/;
+function textChecks(st, L, W, H){
+  const errs = [];
+  L.lines.forEach((ln, i) => {
+    const w = L.widths[i];
+    const x0 = st.align === 'left' ? L.anchorX : st.align === 'right' ? L.anchorX - w : L.anchorX - w / 2;
+    if (x0 < -0.5 || x0 + w > W + 0.5) errs.push(`${i + 1}번째 줄이 가로로 캔버스를 벗어남`);
+    if (LONE.test(ln)) errs.push(`${i + 1}번째 줄에 반쪽 문자(깨진 이모지)`);
+  });
+  if (L.lines.length && (L.top < -0.5 || L.top + L.h > H + 0.5)) errs.push(`문구 높이 ${Math.round(L.h)}px가 캔버스 ${H}px를 벗어남`);
+  for (const it of (L.card ? L.card.items : [])){
+    if (it.w > it.maxW + 0.5) errs.push(`${it.label} 폭 ${Math.round(it.w)}px가 칸 ${Math.round(it.maxW)}px를 넘침`);
+    if (LONE.test(it.text)) errs.push(`${it.label}에 반쪽 문자`);
+  }
+  const a = graphemes(stripWs(st.text)), b = L.lines.flatMap(l => graphemes(stripWs(l)));
+  if (a.length !== b.length || a.some((g, i) => g !== b[i])) errs.push('줄바꿈 중 글자(그래핌)가 갈라지거나 사라짐');
+  return [...new Set(errs)];
+}
+function px(img, x, y){ const i = (y * img.width + x) * 4; return [img.data[i], img.data[i+1], img.data[i+2]]; }
+const hexRgb = h => [1,3,5].map(i => parseInt(h.slice(i, i+2), 16));
+const near = (a, b, t = 3) => a.every((v, i) => Math.abs(v - b[i]) <= t);
+
+async function decodeSample(kind){ const d = await decodeImage(await sampleFile(kind)); return d.img; }
+
+async function runCase(def, legacy){
+  const st = sanitize({ ...DEFAULT, ...def.st });
+  await ensureFonts(st);
+  const img = def.image ? await decodeSample(def.image) : null;
+  const c = document.createElement('canvas');
+  render(c, st, img, legacy); // 실제 미리보기처럼 같은 캔버스에 두 번 그려, 남은 설정 때문에 달라지는지도 잡는다
+  const L = render(c, st, img, legacy);
+  const [W, H] = RATIOS[st.ratio];
+  const errs = [];
+  if (def.text !== false) errs.push(...textChecks(st, L, W, H));
+  if (def.lines != null && L.lines.length !== def.lines) errs.push(`줄 수 ${L.lines.length} (예상 ${def.lines})`);
+  if (def.compare){
+    const r = await compareCanvasWithFile(c, st, img);
+    if (!r.pass) errs.push(`미리보기와 PNG 파일 불일치(다른 픽셀 ${r.diffPixels})`);
+    else def.note = `파일 ${r.w}×${r.h}, 다른 픽셀 0`;
+  }
+  if (def.extra) errs.push(...await def.extra({ st, L, c, img, W, H }));
+  const detail = errs.length ? errs.join(' / ') : [def.ok ? def.ok({ st, L, W, H }) : '', def.note || ''].filter(Boolean).join(' · ');
+  return { pass: errs.length === 0, detail };
+}
+
+const TESTS = [
+  { name:'긴 한글 500자', input:'"오늘도 끝까지 응원합니다 우리 팀 " 반복 500자, 72px, 1:1, 이름 띠 있음',
+    expect:'모든 줄이 캔버스 안·이름 띠 위, 글자 손실 0, 필요하면 자동 축소',
+    st:{ text:('오늘도 끝까지 응원합니다 우리 팀 ').repeat(30).slice(0, 500), size:72, ratio:'1:1' },
+    extra: async ({ L }) => (L.lines.length && L.card.band && L.top + L.h > L.card.band.y + 0.5) ? ['문구가 이름 띠를 덮음'] : [],
+    ok:({ L }) => `${L.lines.length}줄, ${Math.round(L.px)}px로 축소` },
+  { name:'한글·영문 혼합 + 공백 없는 긴 URL', input:'"MVP 후보 Kim의 시즌 기록 https://example.com/stats/…" 80px, 4:5',
+    expect:'긴 URL도 폭 안에서 줄바꿈, 글자 손실 0',
+    st:{ text:'MVP 후보 Kim의 2026 시즌 기록 정리 https://example.com/stats/2026/season/batting/without/any/spaces/must/break 끝.', size:80, ratio:'4:5' },
+    ok:({ L }) => `${L.lines.length}줄` },
+  { name:'연속·끝 줄바꿈', input:'"첫 줄\\n\\n세 번째 줄\\n" 60px', expect:'빈 줄 포함 정확히 4줄',
+    st:{ text:'첫 줄\n\n세 번째 줄\n', size:60 }, lines:4, ok:() => '4줄(빈 줄 2개 유지)' },
+  { name:'이모지(피부색·ZWJ 가족·국기)', input:'"응원 이모지 " + ⚾👍🏽👨‍👩‍👧‍👦🇰🇷🔥 ×12, 96px, 이름 "⚾선수👍🏽"',
+    expect:'이모지가 반으로 갈라지지 않음(반쪽 문자 0)',
+    st:{ text:'응원 이모지 ' + '⚾👍🏽👨‍👩‍👧‍👦🇰🇷🔥'.repeat(12), size:96, playerName:'⚾선수👍🏽' },
+    ok:({ L }) => `${L.lines.length}줄, 갈라진 이모지 0` },
+  { name:'빈 문구', input:'text = "" + 정사각 이미지', expect:'오류 없이 이미지만 그림, 파일 일치',
+    st:{ text:'' }, image:'square', compare:true, lines:0, ok:() => '문구 0줄' },
+  { name:'공백·줄바꿈만', input:'"   \\n  \\n   "', expect:'빈 문구와 같게 처리, 오류 없음',
+    st:{ text:'   \n  \n   ' }, lines:0, ok:() => '문구 0줄' },
+  { name:'세로 이미지 → 1:1', input:'900×1600 합성 이미지, 1:1', expect:'빈틈 없이 채움(가운데 잘림), 미리보기=파일',
+    st:{ ratio:'1:1', text:'세로 사진 테스트', frame:false }, image:'portrait', compare:true,
+    extra: async ({ c, st }) => { const d = c.getContext('2d').getImageData(0, 0, c.width, c.height);
+      const bg = hexRgb(st.bg); return [[0,0],[c.width-1,0],[0,c.height-1],[c.width-1,c.height-1]].some(([x,y]) => near(px(d,x,y), bg)) ? ['배경색이 드러난 빈틈 있음'] : []; } },
+  { name:'가로 이미지 → 9:16', input:'1600×900 합성 이미지, 9:16', expect:'빈틈 없이 채움(좌우 잘림), 미리보기=파일',
+    st:{ ratio:'9:16', text:'가로 사진을\n세로 화면에', frame:false }, image:'landscape', compare:true,
+    extra: async ({ c, st }) => { const d = c.getContext('2d').getImageData(0, 0, c.width, c.height);
+      const bg = hexRgb(st.bg); return [[0,0],[c.width-1,0],[0,c.height-1],[c.width-1,c.height-1]].some(([x,y]) => near(px(d,x,y), bg)) ? ['배경색이 드러난 빈틈 있음'] : []; } },
+  { name:'투명 PNG → 4:5', input:'투명 영역 있는 1200×1200 PNG, 배경 #ff00ff, 4:5', expect:'투명 부분은 배경색, 미리보기=파일',
+    st:{ ratio:'4:5', bg:'#ff00ff', text:'투명 배경', frame:false, number:'' }, image:'transparent', compare:true,
+    extra: async ({ c }) => { const d = c.getContext('2d').getImageData(0, 0, c.width, c.height);
+      return near(px(d, 20, 20), [255,0,255]) ? [] : ['투명 영역이 배경색으로 보이지 않음']; } },
+  { name:'범위 밖 숫자·긴 이름', input:'크기 9999, 가로 -50, 세로 500, 이름 30자, 등번호 "9999"', expect:'300·0·100으로 고정, 이름 20자로 자름, 모든 글이 칸 안',
+    st:{ size:9999, x:-50, y:500, text:'범위 밖 값 테스트 문구', playerName:'가나다라마바사아자차카타파하거너더러머버서어저처커터퍼허', number:'9999' },
+    extra: async ({ st }) => (st.size === 300 && st.x === 0 && st.y === 100 && Array.from(st.playerName).length === 20) ? [] : [`고정값 오류 size=${st.size}, x=${st.x}, y=${st.y}, 이름 ${Array.from(st.playerName).length}자`],
+    ok:({ L }) => `300/0/100으로 고정, 문구 ${Math.round(L.px)}px, 이름 ${Math.round(L.card.band.n.px)}px` },
+  { name:'지원하지 않는 파일', input:'GIF 바이트 파일, 이름만 .png인 텍스트 파일', expect:'둘 다 이유와 함께 거부, 현재 편집·이미지 그대로',
+    text:false, st:{},
+    extra: async () => {
+      const before = JSON.stringify(state) + '|' + (image ? image.url : 'none');
+      const gif = new File([new Uint8Array([0x47,0x49,0x46,0x38,0x39,0x61,1,0,1,0,0,0,0,0x3b])], 'anim.gif', { type:'image/gif' });
+      const fake = new File(['이건 이미지가 아닙니다'], 'fake.png', { type:'image/png' });
+      const r1 = await handleFile(gif), r2 = await handleFile(fake);
+      const after = JSON.stringify(state) + '|' + (image ? image.url : 'none');
+      const e = [];
+      if (r1.ok || !r1.reason) e.push('GIF가 거부되지 않음');
+      if (r2.ok || !r2.reason) e.push('가짜 PNG가 거부되지 않음');
+      if (before !== after) e.push('기존 편집이 바뀜');
+      TESTS[10].note = `거부 이유: "${r1.reason}" / "${r2.reason}"`;
+      return e;
+    } },
+  { name:'잘못된 JSON 가져오기', input:'문법 손상 JSON, color 항목이 빠진 JSON', expect:'둘 다 저장 전에 거부, 기존 템플릿 그대로',
+    text:false, st:{},
+    extra: async () => {
+      const before = store.get(TPL_KEY);
+      const r1 = importTemplatesText('{"templates":[{"id":"a1","name":"깨짐",');
+      const r2 = importTemplatesText(JSON.stringify({ templates:[{ id:'x1', name:'누락', ratio:'1:1', text:'hi', x:50, y:50, size:40 }] }));
+      const after = store.get(TPL_KEY);
+      const e = [];
+      if (r1.ok) e.push('손상 JSON이 저장됨'); if (r2.ok) e.push('필수 누락 JSON이 저장됨');
+      if (before !== after) e.push('기존 템플릿 데이터가 바뀜');
+      TESTS[11].note = `거부 이유: "${r1.reason}" / "${r2.reason}"`;
+      return e;
+    } },
+];
+
+let lastRows = [];
+$('runTests').addEventListener('click', async () => {
+  const legacy = $('legacyMode').checked;
+  const btn = $('runTests'); btn.disabled = true; btn.textContent = '검사 중…';
+  const tbody = $('testTable').querySelector('tbody'); tbody.replaceChildren();
+  const msgBefore = $('msg').firstChild ? $('msg').firstChild.cloneNode(true) : null;
+  lastRows = [];
+  for (let i = 0; i < TESTS.length; i++){
+    const t = TESTS[i]; t.note = '';
+    let r;
+    try { r = await runCase(t, legacy); } catch (e) { r = { pass:false, detail:'검사 중 오류: ' + e.message }; }
+    const row = { n:i + 1, name:t.name, input:t.input, expect:t.expect, pass:r.pass, detail:r.detail };
+    lastRows.push(row);
+    const tr = document.createElement('tr');
+    for (const [v, cls] of [[row.n],[row.name],[row.input],[row.expect],[row.pass ? 'PASS' : 'FAIL', row.pass ? 'pass' : 'fail'],[row.detail]]){
+      const td = document.createElement('td'); td.textContent = String(v); if (cls) td.className = cls; tr.append(td);
+    }
+    tbody.append(tr);
+  }
+  $('msg').replaceChildren(...(msgBefore ? [msgBefore] : [])); // 검사 11번이 띄운 메시지는 지운다
+  const passN = lastRows.filter(r => r.pass).length;
+  const head = `### 극단 입력 검사 (${legacy ? '수정 전 구현' : '현재 구현'}) — ${new Date().toLocaleString('ko-KR')} — PASS ${passN}/12\n\n| # | 항목 | 입력 | 예상값 | 결과 | 근거 |\n|---|---|---|---|---|---|\n`;
+  const esc = s => String(s).replace(/\|/g, '\\|').replace(/\n/g, ' ');
+  $('mdOut').value = head + lastRows.map(r => `| ${r.n} | ${esc(r.name)} | ${esc(r.input)} | ${esc(r.expect)} | ${r.pass ? 'PASS' : 'FAIL'} | ${esc(r.detail)} |`).join('\n');
+  btn.disabled = false; btn.textContent = '12건 검사 실행';
+  showMsg(`검사 완료 (${legacy ? '수정 전 구현' : '현재 구현'}): PASS ${passN}/12`, passN === 12 ? 'ok' : 'error');
+  draw();
+});
+$('copyMd').addEventListener('click', async () => {
+  const v = $('mdOut').value;
+  if (!v) return showMsg('먼저 검사를 실행하세요.', 'info');
+  try { await navigator.clipboard.writeText(v); showMsg('결과표를 복사했습니다.', 'ok'); }
+  catch { $('mdOut').select(); showMsg('자동 복사가 막혀 있어 결과표를 선택해 두었습니다. Ctrl+C로 복사하세요.', 'info'); }
+});
+
+/* ---------- 시작 ---------- */
+syncControls();
+drawSoon();
+renderTplList();
+if (store.get(DRAFT_KEY)) showMsg('지난번 편집 중이던 문구 설정을 복원했습니다(이미지는 저장되지 않으므로 다시 불러오세요).', 'info');
+</script>
+</body>
+</html>
